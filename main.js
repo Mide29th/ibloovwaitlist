@@ -24,9 +24,10 @@ document.addEventListener('DOMContentLoaded', () => {
     createParticles('particles-dash');
     loadTotalCount();
     checkReferralCode();
-    setupForm();
-    setupPropCards();
+    // setupForm();
+    // setupPropCards();
     checkReturningUser();
+    setupCampusModal();
 });
 
 // --- Check if user has already signed up (stored in localStorage) ---
@@ -88,27 +89,12 @@ function createParticles(containerId) {
         p.style.animationDelay = Math.random() * 8 + 's';
         p.style.width = (2 + Math.random() * 3) + 'px';
         p.style.height = p.style.width;
-        const colors = ['#6c3ce9', '#a855f7', '#3b82f6', '#ec4899'];
+        const colors = ['#0000D2', '#F1A000', '#000080', '#FFB84D'];
         p.style.background = colors[Math.floor(Math.random() * colors.length)];
         container.appendChild(p);
     }
 }
 
-// --- Prop Card Click = Select Radio ---
-function setupPropCards() {
-    document.querySelectorAll('.prop-card').forEach(card => {
-        card.addEventListener('click', () => {
-            const interest = card.dataset.interest;
-            const radio = document.querySelector(`input[name="interest"][value="${interest}"]`);
-            if (radio) {
-                radio.checked = true;
-                radio.dispatchEvent(new Event('change'));
-                // Scroll to form
-                document.getElementById('form-section').scrollIntoView({ behavior: 'smooth' });
-            }
-        });
-    });
-}
 
 // ===== FORM HANDLING =====
 function setupForm() {
@@ -354,7 +340,10 @@ async function loadLeaderboard() {
 }
 
 // ===== TICKET GENERATOR (Canvas API) =====
-function generateTicket(data) {
+async function generateTicket(data) {
+    // Ensure fonts are loaded before drawing to canvas
+    await document.fonts.ready;
+
     const canvas = document.createElement('canvas');
     canvas.width = 1080;
     canvas.height = 1920;
@@ -362,42 +351,52 @@ function generateTicket(data) {
 
     // Background
     const bgGrad = ctx.createLinearGradient(0, 0, 1080, 1920);
-    bgGrad.addColorStop(0, '#060611');
-    bgGrad.addColorStop(0.5, '#0d0d24');
-    bgGrad.addColorStop(1, '#060611');
+    bgGrad.addColorStop(0, '#FFFFFF');
+    bgGrad.addColorStop(0.5, '#f8f9ff');
+    bgGrad.addColorStop(1, '#FFFFFF');
     ctx.fillStyle = bgGrad;
     ctx.fillRect(0, 0, 1080, 1920);
 
-    // Decorative circles
-    const orbGrad = ctx.createRadialGradient(540, 600, 0, 540, 600, 300);
-    orbGrad.addColorStop(0, 'rgba(108, 60, 233, 0.3)');
-    orbGrad.addColorStop(0.5, 'rgba(168, 85, 247, 0.1)');
+    // Subtle Dot Grid
+    ctx.fillStyle = 'rgba(0, 0, 210, 0.05)';
+    for (let x = 0; x < 1080; x += 40) {
+        for (let y = 0; y < 1920; y += 40) {
+            ctx.beginPath();
+            ctx.arc(x, y, 1.5, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+
+    // Decorative Orbs
+    const orbGrad = ctx.createRadialGradient(540, 600, 0, 540, 600, 400);
+    orbGrad.addColorStop(0, 'rgba(0, 0, 210, 0.05)');
+    orbGrad.addColorStop(0.6, 'rgba(241, 160, 0, 0.02)');
     orbGrad.addColorStop(1, 'transparent');
     ctx.fillStyle = orbGrad;
     ctx.beginPath();
-    ctx.arc(540, 600, 300, 0, Math.PI * 2);
+    ctx.arc(540, 600, 400, 0, Math.PI * 2);
     ctx.fill();
 
     // Ring decorations
-    ctx.strokeStyle = 'rgba(108, 60, 233, 0.2)';
+    ctx.strokeStyle = 'rgba(0, 0, 210, 0.1)';
     ctx.lineWidth = 2;
-    [200, 260, 320].forEach(r => {
+    [240, 300, 360].forEach(r => {
         ctx.beginPath();
         ctx.arc(540, 600, r, 0, Math.PI * 2);
         ctx.stroke();
     });
 
     // "BOARDING PASS" label
-    ctx.fillStyle = 'rgba(168, 85, 247, 0.6)';
-    ctx.font = '600 18px "Inter", sans-serif';
-    ctx.letterSpacing = '6px';
+    ctx.fillStyle = 'rgba(0, 0, 210, 0.6)';
+    ctx.font = '600 24px "Montserrat", sans-serif';
+    ctx.letterSpacing = '8px';
     ctx.textAlign = 'center';
     ctx.fillText('B O A R D I N G   P A S S', 540, 180);
 
     // Divider line
-    ctx.strokeStyle = 'rgba(108, 60, 233, 0.3)';
+    ctx.strokeStyle = 'rgba(0, 0, 210, 0.2)';
     ctx.lineWidth = 1;
-    ctx.setLineDash([8, 8]);
+    ctx.setLineDash([12, 12]);
     ctx.beginPath();
     ctx.moveTo(100, 220);
     ctx.lineTo(980, 220);
@@ -405,81 +404,98 @@ function generateTicket(data) {
     ctx.setLineDash([]);
 
     // Brand
-    ctx.fillStyle = '#f0f0ff';
-    ctx.font = '700 52px "Space Grotesk", sans-serif';
+    ctx.fillStyle = '#0000D2';
+    ctx.font = '800 64px "Montserrat", sans-serif';
     ctx.fillText('ibloov', 540, 320);
 
     // AURA badge
-    const aurGrad = ctx.createLinearGradient(480, 340, 600, 340);
-    aurGrad.addColorStop(0, '#6c3ce9');
-    aurGrad.addColorStop(1, '#a855f7');
-    ctx.fillStyle = aurGrad;
-    roundRect(ctx, 490, 340, 100, 32, 16);
+    ctx.fillStyle = '#F1A000';
+    roundRect(ctx, 485, 345, 110, 36, 18);
     ctx.fill();
     ctx.fillStyle = '#fff';
-    ctx.font = '600 14px "Inter", sans-serif';
-    ctx.fillText('AURA', 540, 362);
+    ctx.font = '700 16px "Open Sans", sans-serif';
+    ctx.fillText('AFRICA', 540, 369);
 
-    // User name
-    ctx.fillStyle = '#f0f0ff';
-    ctx.font = '700 48px "Space Grotesk", sans-serif';
-    ctx.fillText(data.full_name || 'Explorer', 540, 880);
+    // User section
+    ctx.fillStyle = 'rgba(26, 26, 26, 0.4)';
+    ctx.font = '500 20px "Open Sans", sans-serif';
+    ctx.fillText('PASSENGER NAME', 540, 820);
+
+    ctx.fillStyle = '#1A1A1A';
+    ctx.font = '700 56px "Montserrat", sans-serif';
+    ctx.fillText(data.full_name || 'Explorer', 540, 890);
 
     // Position
-    const posGrad = ctx.createLinearGradient(340, 950, 740, 950);
-    posGrad.addColorStop(0, '#6c3ce9');
-    posGrad.addColorStop(0.5, '#a855f7');
-    posGrad.addColorStop(1, '#ec4899');
+    const posGrad = ctx.createLinearGradient(300, 950, 780, 950);
+    posGrad.addColorStop(0, '#0000D2');
+    posGrad.addColorStop(1, '#F1A000');
     ctx.fillStyle = posGrad;
-    ctx.font = '700 120px "Space Grotesk", sans-serif';
-    ctx.fillText(`#${data.queue_position.toLocaleString()}`, 540, 1060);
+    ctx.font = '800 150px "Montserrat", sans-serif';
+    ctx.fillText(`#${data.queue_position.toLocaleString()}`, 540, 1080);
 
     // Position label
-    ctx.fillStyle = 'rgba(240, 240, 255, 0.5)';
-    ctx.font = '500 22px "Inter", sans-serif';
-    ctx.fillText('P O S I T I O N   I N   L I N E', 540, 1120);
+    ctx.fillStyle = 'rgba(26, 26, 26, 0.6)';
+    ctx.font = '600 24px "Open Sans", sans-serif';
+    ctx.letterSpacing = '4px';
+    ctx.fillText('P O S I T I O N   I N   L I N E', 540, 1150);
 
-    // Divider
-    ctx.strokeStyle = 'rgba(108, 60, 233, 0.3)';
-    ctx.setLineDash([8, 8]);
+    // Bottom Divider
+    ctx.strokeStyle = 'rgba(0, 0, 210, 0.2)';
+    ctx.setLineDash([12, 12]);
     ctx.beginPath();
-    ctx.moveTo(100, 1200);
-    ctx.lineTo(980, 1200);
+    ctx.moveTo(100, 1220);
+    ctx.lineTo(980, 1220);
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // Info section
+    // Info section grid
     const interestLabels = {
-        get_hired: 'Get Hired — Ibloov Learning',
-        host_events: 'Host Events — Organizer Tools',
-        explore: 'Explore & Party — General User',
+        get_hired: 'Ibloov Learning',
+        host_events: 'Ibloov Events',
+        explore: 'Ibloov Flex-it',
     };
 
-    ctx.fillStyle = 'rgba(240, 240, 255, 0.4)';
-    ctx.font = '500 18px "Inter", sans-serif';
-    ctx.fillText('DESTINATION', 540, 1280);
+    // Destination
+    ctx.fillStyle = 'rgba(26, 26, 26, 0.4)';
+    ctx.font = '600 20px "Open Sans", sans-serif';
+    ctx.fillText('DESTINATION', 540, 1320);
 
-    ctx.fillStyle = '#f0f0ff';
-    ctx.font = '500 28px "Inter", sans-serif';
-    ctx.fillText(interestLabels[data.interest] || 'The Orbit', 540, 1320);
+    ctx.fillStyle = '#1A1A1A';
+    ctx.font = '700 32px "Open Sans", sans-serif';
+    ctx.fillText(interestLabels[data.interest] || 'The Orbit', 540, 1370);
 
-    ctx.fillStyle = 'rgba(240, 240, 255, 0.4)';
-    ctx.font = '500 18px "Inter", sans-serif';
-    ctx.fillText('REFERRAL CODE', 540, 1410);
+    // Referral Code
+    ctx.fillStyle = 'rgba(26, 26, 26, 0.4)';
+    ctx.font = '600 20px "Open Sans", sans-serif';
+    ctx.fillText('ACCESS CODE', 540, 1460);
 
-    ctx.fillStyle = '#a855f7';
-    ctx.font = '600 32px monospace';
-    ctx.fillText(data.referral_code, 540, 1460);
+    ctx.fillStyle = '#0000D2';
+    ctx.font = '700 40px monospace';
+    ctx.fillText(data.referral_code, 540, 1515);
+
+    // Premium Border Overlay
+    ctx.strokeStyle = 'rgba(0, 0, 210, 0.1)';
+    ctx.lineWidth = 40;
+    ctx.strokeRect(20, 20, 1040, 1880);
+
+    // Scan overlay text (vertical)
+    ctx.save();
+    ctx.translate(60, 960);
+    ctx.rotate(-Math.PI / 2);
+    ctx.fillStyle = 'rgba(26, 26, 26, 0.1)';
+    ctx.font = '600 14px monospace';
+    ctx.fillText('IBLOOV AFRICA PROTOCOL — v2.0.0 — MISSION STATUS: ACTIVE', 0, 0);
+    ctx.restore();
 
     // CTA
-    ctx.fillStyle = 'rgba(240, 240, 255, 0.35)';
-    ctx.font = '400 20px "Inter", sans-serif';
-    ctx.fillText('Join the orbit → ibloov.com', 540, 1600);
+    ctx.fillStyle = 'rgba(0, 0, 210, 0.8)';
+    ctx.font = '700 24px "Open Sans", sans-serif';
+    ctx.fillText('Join the orbit → africa.ibloov.com', 540, 1700);
 
     // Tagline
-    ctx.fillStyle = 'rgba(240, 240, 255, 0.2)';
-    ctx.font = '400 16px "Inter", sans-serif';
-    ctx.fillText('The Life & Leisure OS for Africa', 540, 1780);
+    ctx.fillStyle = 'rgba(26, 26, 26, 0.4)';
+    ctx.font = '600 18px "Open Sans", sans-serif';
+    ctx.fillText('Technology that makes you smile', 540, 1820);
 
     // Download
     const link = document.createElement('a');
@@ -513,7 +529,7 @@ function launchConfetti() {
     canvas.height = window.innerHeight;
 
     const confetti = [];
-    const colors = ['#6c3ce9', '#a855f7', '#ec4899', '#3b82f6', '#22c55e', '#f59e0b'];
+    const colors = ['#0000D2', '#F1A000', '#000080', '#FFB84D', '#1A1A1A', '#f8f9ff'];
 
     for (let i = 0; i < 120; i++) {
         confetti.push({
@@ -582,4 +598,125 @@ function showToast(message, type = 'success') {
         toast.classList.remove('show');
         setTimeout(() => toast.remove(), 400);
     }, 3500);
+}
+// ===== CAMPUS AMBASSADOR MODAL =====
+function setupCampusModal() {
+    const modal = document.getElementById('campus-modal');
+    const openBtn = document.getElementById('apply-campus-btn');
+    const closeBtn = document.getElementById('close-modal');
+    const successClose = document.getElementById('success-close');
+    const form = document.getElementById('campus-form');
+    const successState = document.getElementById('form-success');
+    const uniSearch = document.getElementById('university-search');
+    const uniResults = document.getElementById('university-results');
+    const uniIdInput = document.getElementById('university-id');
+
+    if (!modal || !openBtn) return;
+
+    // Open Modal
+    openBtn.addEventListener('click', () => {
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    });
+
+    // Close Modal
+    const closeModal = () => {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+        // Reset form after a delay to allow animation to finish
+        setTimeout(() => {
+            form.reset();
+            form.classList.remove('hidden');
+            successState.classList.add('hidden');
+            uniResults.classList.remove('active');
+            uniResults.innerHTML = '';
+        }, 400);
+    };
+
+    closeBtn.addEventListener('click', closeModal);
+    successClose.addEventListener('click', closeModal);
+
+    // Close on backdrop click
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+
+    // University Search Logic
+    let searchTimeout;
+    uniSearch.addEventListener('input', (e) => {
+        const query = e.target.value.trim();
+        clearTimeout(searchTimeout);
+
+        if (query.length < 3) {
+            uniResults.classList.remove('active');
+            return;
+        }
+
+        searchTimeout = setTimeout(async () => {
+            try {
+                const response = await fetch(`http://universities.hipolabs.com/search?name=${encodeURIComponent(query)}`);
+                const data = await response.json();
+
+                if (data && data.length > 0) {
+                    displayUniResults(data.slice(0, 10)); // Limit to 10 results
+                } else {
+                    uniResults.innerHTML = '<div class="result-item">No universities found</div>';
+                    uniResults.classList.add('active');
+                }
+            } catch (error) {
+                console.error('Error fetching universities:', error);
+            }
+        }, 400);
+    });
+
+    function displayUniResults(universities) {
+        uniResults.innerHTML = universities
+            .map(uni => `<div class="result-item" data-name="${uni.name}">${uni.name}</div>`)
+            .join('');
+        uniResults.classList.add('active');
+
+        // Click result
+        uniResults.querySelectorAll('.result-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const name = item.dataset.name;
+                uniSearch.value = name;
+                uniIdInput.value = name;
+                uniResults.classList.remove('active');
+            });
+        });
+    }
+
+    // Close results when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!uniSearch.contains(e.target) && !uniResults.contains(e.target)) {
+            uniResults.classList.remove('active');
+        }
+    });
+
+    // Form Submission
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const submitBtn = form.querySelector('.submit-btn');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Submitting...';
+
+        // Simulate API call (In a real app, you'd send this to Supabase or an Edge Function)
+        try {
+            // Collecting form data
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+            console.log('Ambassador Application:', data);
+
+            // Artificial delay
+            await new Promise(resolve => setTimeout(resolve, 1500));
+
+            // Success state
+            form.classList.add('hidden');
+            successState.classList.remove('hidden');
+        } catch (error) {
+            showToast('Submission failed. Please try again.', 'error');
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Submit Application';
+        }
+    });
 }
